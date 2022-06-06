@@ -1,0 +1,95 @@
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
+
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WindowType;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+
+@SuppressWarnings("unused")
+public class CodeTest1 {
+
+	@SuppressWarnings("deprecation")
+	public static void Captcha(String message) {
+		JFrame parent = new JFrame();
+		JLabel lab = new JLabel(message, 0);
+		JOptionPane pane = new JOptionPane(lab);
+		JDialog dialog = pane.createDialog(parent, "Message");
+		dialog.setSize(400, 300);
+		dialog.setAlwaysOnTop(true);
+		dialog.show();
+		dialog.toFront();
+		dialog.setFocusable(true);
+		dialog.dispose();
+		parent.dispose();
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		System.setProperty("webdriver.chrome.driver",
+				"C:\\Users\\quality\\Downloads\\chromedriver_win32\\chromedriver.exe");
+
+		ChromeOptions options = new ChromeOptions();
+		options.addArguments("--incognito");
+		DesiredCapabilities cap = new DesiredCapabilities();
+		cap.setCapability(ChromeOptions.CAPABILITY, options);
+		options.merge(cap);
+		WebDriver driver = new ChromeDriver(options);
+
+		driver.manage().window().maximize();
+		driver.get("https://codeshare.io/");
+		driver.getWindowHandle();
+		driver.findElement(By.xpath("//a[@class='btn-primary']")).click();
+
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(90));
+
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='CodeMirror-scroll']")));
+
+		CodeTest1.Captcha("As editor dosent have input field so kindly enter code");
+
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("(//span[@role='presentation'])[1]")));
+
+		String Url = driver.getCurrentUrl();
+		options.addArguments("--incognito");
+
+		JavascriptExecutor js = (JavascriptExecutor) driver;
+		js.executeScript("window.open();");
+
+		ArrayList<String> all = new ArrayList<String>(driver.getWindowHandles());
+
+		driver.switchTo().window(all.get(1));
+		driver.get(Url);
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span[@role='presentation']")));
+		CodeTest1.Captcha("As editor dosent have input field so kindly enter code");
+		Assert.assertEquals(driver.findElement(By.xpath("(//span[@role='presentation'])[1]")).getText(),
+				"#include<stdio.h>");
+
+		driver.switchTo().window(all.get(0));
+		wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("(//span[@role='presentation'])[1]")));
+		Assert.assertEquals(driver.findElement(By.xpath("(//span[@role='presentation'])[1]")).getText(),
+				"#include<stdio.h>");
+		Assert.assertEquals(driver.findElement(By.xpath("(//span[@role='presentation'])[2]")).getText(),
+				"#include<conio.h>");
+
+		System.out.println("All Test Passed");
+
+		driver.close();
+		driver.switchTo().window(all.get(1));
+		driver.close();
+
+	}
+
+}
